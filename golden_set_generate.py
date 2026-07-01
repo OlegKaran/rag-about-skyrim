@@ -44,7 +44,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 documents = text_splitter.split_documents(raw_documents)
 random.seed(42)
-sampled_docs = random.sample(documents, min(100, len(documents)))
+SAMPLED_DOCS = random.sample(documents, min(100, len(documents)))
 
 # ragas_llm = LangchainLLMWrapper(gemini_llm)
 # ragas_embed = LangchainEmbeddingsWrapper(embeddings)
@@ -52,8 +52,9 @@ sampled_docs = random.sample(documents, min(100, len(documents)))
 
 print(f"Создание knowledge graph...")
 generator = TestsetGenerator.from_langchain(
-    llm=llm,
-    embedding_model=embeddings
+    generator_llm=llm,
+    critic_llm=llm,
+    embeddings=embeddings
 )
 
 safe_config = RunConfig(
@@ -64,7 +65,7 @@ safe_config = RunConfig(
 
 TARGET_TOTAL_QUESTIONS = 100
 BATCH_SIZE = 20
-OUTPUT_FILE = "rag_data/oblivion_golden_set.csv"
+OUTPUT_FILE = "rag_data/oblivion_golden_set_for_eval.csv"
 
 questions_generated = 0
 
@@ -78,8 +79,8 @@ print(f"Осталось вопросов: {TARGET_TOTAL_QUESTIONS - questions_g
 
 while questions_generated < TARGET_TOTAL_QUESTIONS:
     testset = generator.generate_with_langchain_docs(
-        sampled_docs,
-        testset_size=BATCH_SIZE,
+        documents=SAMPLED_DOCS,
+        test_size=BATCH_SIZE,
         run_config=safe_config
     )
 
